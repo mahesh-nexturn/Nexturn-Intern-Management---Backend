@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/intern_management_test
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    clean-disabled: false
+    locations: classpath:db/migration
+
+jwt:
+  secret: test-secret-key-for-junit-tests-only-0123456789
+  access-token-expiry-ms: 900000
+  refresh-token-expiry-ms: 604800000
+
+logging:
+  level:
+    com.nexturn.internmanagement: INFO
+    org.hibernate.SQL: WARN
