@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.task;
+import com.nexturn.internmanagement.task.dto.TaskRequestDto;
+import com.nexturn.internmanagement.task.dto.TaskResponseDto;
+import com.nexturn.internmanagement.task.dto.TaskStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

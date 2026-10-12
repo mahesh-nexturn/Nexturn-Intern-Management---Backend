@@ -1,7 +1,9 @@
 package com.nexturn.internmanagement.mentor;
+import com.nexturn.internmanagement.mentor.dto.MentorRequestDto;
+import com.nexturn.internmanagement.mentor.dto.MentorResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
-import com.nexturn.internmanagement.intern.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

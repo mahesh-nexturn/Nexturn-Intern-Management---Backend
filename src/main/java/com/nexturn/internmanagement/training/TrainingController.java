@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.training;
+import com.nexturn.internmanagement.training.dto.TrainingRequestDto;
+import com.nexturn.internmanagement.training.dto.TrainingResponseDto;
+import com.nexturn.internmanagement.training.dto.TrainingStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

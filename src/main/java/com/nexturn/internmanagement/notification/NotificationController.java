@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.notification;
+import com.nexturn.internmanagement.notification.dto.NotificationRequestDto;
+import com.nexturn.internmanagement.notification.dto.NotificationResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;

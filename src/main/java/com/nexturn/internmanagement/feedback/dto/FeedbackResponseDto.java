@@ -1,0 +1,23 @@
+package com.nexturn.internmanagement.feedback.dto;
+import com.nexturn.internmanagement.feedback.Feedback;
+
+import java.time.LocalDateTime;
+
+public record FeedbackResponseDto(
+        Long id,
+        Long fromUserId,
+        String fromUserName,
+        String subject,
+        String message,
+        LocalDateTime createdAt) {
+
+    public static FeedbackResponseDto from(Feedback feedback) {
+        return new FeedbackResponseDto(
+                feedback.getId(),
+                feedback.getFromUser().getId(),
+                feedback.getFromUser().getName(),
+                feedback.getSubject(),
+                feedback.getMessage(),
+                feedback.getCreatedAt());
+    }
+}

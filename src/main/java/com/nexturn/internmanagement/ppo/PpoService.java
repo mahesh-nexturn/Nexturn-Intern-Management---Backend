@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.ppo;
+import com.nexturn.internmanagement.ppo.dto.PpoRequestDto;
+import com.nexturn.internmanagement.ppo.dto.PpoResponseDto;
+import com.nexturn.internmanagement.ppo.dto.PpoStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;

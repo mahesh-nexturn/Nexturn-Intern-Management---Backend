@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.report;
+import com.nexturn.internmanagement.report.dto.InternReportDto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

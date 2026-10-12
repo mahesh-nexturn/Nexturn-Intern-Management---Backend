@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.feedback;
+import com.nexturn.internmanagement.feedback.dto.FeedbackRequestDto;
+import com.nexturn.internmanagement.feedback.dto.FeedbackResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.user.User;

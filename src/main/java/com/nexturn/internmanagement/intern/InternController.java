@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.intern;
+import com.nexturn.internmanagement.intern.dto.InternRequestDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternDashboardDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

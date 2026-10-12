@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.certificate;
+import com.nexturn.internmanagement.certificate.dto.CertificateRequestDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateResponseDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;

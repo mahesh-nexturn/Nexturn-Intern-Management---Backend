@@ -1,12 +1,15 @@
 package com.nexturn.internmanagement.intern;
+import com.nexturn.internmanagement.intern.dto.InternRequestDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternDashboardDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import com.nexturn.internmanagement.meeting.MeetingRepository;
-import com.nexturn.internmanagement.meeting.MeetingResponseDto;
+import com.nexturn.internmanagement.meeting.dto.MeetingResponseDto;
 import com.nexturn.internmanagement.task.TaskRepository;
-import com.nexturn.internmanagement.task.TaskResponseDto;
+import com.nexturn.internmanagement.task.dto.TaskResponseDto;
 import com.nexturn.internmanagement.task.TaskStatus;
 import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;

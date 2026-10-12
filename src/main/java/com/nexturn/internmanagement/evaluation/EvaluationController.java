@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.evaluation;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationRequestDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationResponseDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

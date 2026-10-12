@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.dashboard;
+import com.nexturn.internmanagement.dashboard.dto.AdminDashboardDto;
+import com.nexturn.internmanagement.dashboard.dto.InternDashboardSummaryDto;
+import com.nexturn.internmanagement.dashboard.dto.MentorDashboardDto;
 
 import com.nexturn.internmanagement.announcement.AnnouncementService;
 import com.nexturn.internmanagement.attendance.AttendanceRepository;
@@ -8,7 +11,7 @@ import com.nexturn.internmanagement.meeting.MeetingRepository;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import com.nexturn.internmanagement.task.TaskRepository;
 import com.nexturn.internmanagement.task.TaskService;
-import com.nexturn.internmanagement.task.TaskStatsDto;
+import com.nexturn.internmanagement.task.dto.TaskStatsDto;
 import com.nexturn.internmanagement.task.TaskStatus;
 import com.nexturn.internmanagement.training.TrainingService;
 import com.nexturn.internmanagement.user.UserRepository;

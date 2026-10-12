@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.dashboard;
+import com.nexturn.internmanagement.dashboard.dto.AdminDashboardDto;
+import com.nexturn.internmanagement.dashboard.dto.InternDashboardSummaryDto;
+import com.nexturn.internmanagement.dashboard.dto.MentorDashboardDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import lombok.RequiredArgsConstructor;

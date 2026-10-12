@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.evaluation;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationRequestDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationResponseDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;

@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.attendance;
+import com.nexturn.internmanagement.attendance.dto.AttendanceRequestDto;
+import com.nexturn.internmanagement.attendance.dto.AttendanceResponseDto;
+import com.nexturn.internmanagement.attendance.dto.AttendanceStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;

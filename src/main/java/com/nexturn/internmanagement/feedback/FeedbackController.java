@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.feedback;
+import com.nexturn.internmanagement.feedback.dto.FeedbackRequestDto;
+import com.nexturn.internmanagement.feedback.dto.FeedbackResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;

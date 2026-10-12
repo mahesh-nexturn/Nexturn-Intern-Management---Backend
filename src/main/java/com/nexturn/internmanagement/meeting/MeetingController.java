@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.meeting;
+import com.nexturn.internmanagement.meeting.dto.MeetingRequestDto;
+import com.nexturn.internmanagement.meeting.dto.MeetingResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

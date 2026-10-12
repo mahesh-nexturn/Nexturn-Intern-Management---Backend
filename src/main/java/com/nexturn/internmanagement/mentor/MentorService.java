@@ -1,8 +1,10 @@
 package com.nexturn.internmanagement.mentor;
+import com.nexturn.internmanagement.mentor.dto.MentorRequestDto;
+import com.nexturn.internmanagement.mentor.dto.MentorResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.InternRepository;
-import com.nexturn.internmanagement.intern.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
 import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;
 import com.nexturn.internmanagement.user.UserRepository;

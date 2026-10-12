@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.report;
+import com.nexturn.internmanagement.report.dto.InternReportDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;

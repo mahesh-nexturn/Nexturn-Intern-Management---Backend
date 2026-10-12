@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.notification;
+import com.nexturn.internmanagement.notification.dto.NotificationRequestDto;
+import com.nexturn.internmanagement.notification.dto.NotificationResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.user.Role;
