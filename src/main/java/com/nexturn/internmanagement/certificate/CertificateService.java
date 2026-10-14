@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.certificate;
+import com.nexturn.internmanagement.certificate.dto.CertificateRequestDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateResponseDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;
@@ -8,6 +11,7 @@ import com.nexturn.internmanagement.mentor.MentorRepository;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -57,12 +61,21 @@ public class CertificateService {
     }
 
     public CertificateStatsDto stats() {
-        List<Certificate> all = certificateRepository.findAll();
+        return stats(id -> true);
+    }
+
+    public CertificateStatsDto stats(Predicate<Long> internScope) {
+        List<Certificate> all = certificateRepository.findAll().stream()
+                .filter(c -> c.getIntern() != null && internScope.test(c.getIntern().getId())).toList();
         long active = all.stream().filter(c -> c.getStatus() == CertificateStatus.Active).count();
         long expired = all.stream().filter(c -> c.getStatus() == CertificateStatus.Expired).count();
         YearMonth currentMonth = YearMonth.now();
-        long issuedThisMonth = certificateRepository.countByIssueDateBetween(
-                currentMonth.atDay(1), currentMonth.atEndOfMonth());
+        LocalDate monthStart = currentMonth.atDay(1);
+        LocalDate monthEnd = currentMonth.atEndOfMonth();
+        long issuedThisMonth = all.stream()
+                .filter(c -> c.getIssueDate() != null && !c.getIssueDate().isBefore(monthStart)
+                        && !c.getIssueDate().isAfter(monthEnd))
+                .count();
         return new CertificateStatsDto(all.size(), active, expired, issuedThisMonth);
     }
 

@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.document;
+import com.nexturn.internmanagement.document.dto.DocumentResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.user.User;

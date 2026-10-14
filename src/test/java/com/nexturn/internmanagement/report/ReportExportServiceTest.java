@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.report;
+import com.nexturn.internmanagement.report.dto.InternReportDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

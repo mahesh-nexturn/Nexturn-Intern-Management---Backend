@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.intern;
+import com.nexturn.internmanagement.intern.dto.InternRequestDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternDashboardDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
@@ -34,6 +37,9 @@ public class InternController {
         if (ownershipService.isMentor(principal)) {
             return ApiResponse.ok(internService.findByMentor(ownershipService.currentMentorId(principal)));
         }
+        if (ownershipService.isHr(principal)) {
+            return ApiResponse.ok(internService.findByHr(principal.getId()));
+        }
         return ApiResponse.ok(internService.findAll());
     }
 
@@ -56,23 +62,42 @@ public class InternController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<InternResponseDto> create(@Valid @RequestBody InternRequestDto dto) {
-        return ApiResponse.ok(internService.create(dto), "Intern created");
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    public ApiResponse<InternResponseDto> create(@Valid @RequestBody InternRequestDto dto,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (ownershipService.isHr(principal)) {
+            ownershipService.assertHrOwnsMentor(principal, dto.mentorId());
+            return ApiResponse.ok(internService.create(withoutHrAndUser(dto), principal.getId()), "Intern created");
+        }
+        return ApiResponse.ok(internService.create(dto, dto.hrId()), "Intern created");
+    }
+
+    private InternRequestDto withoutHrAndUser(InternRequestDto dto) {
+        return new InternRequestDto(dto.name(), dto.email(), dto.department(), dto.status(), dto.mentorId(),
+                null, null);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<InternResponseDto> update(@PathVariable Long id, @Valid @RequestBody InternRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, internService.findById(id).mentorId());
+        if (!ownershipService.isHr(principal)) {
+            ownershipService.assertOwnsMentorResource(principal, internService.findById(id).mentorId());
+        }
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
-        return ApiResponse.ok(internService.update(id, dto), "Intern updated");
+        ownershipService.assertHrOwnsMentor(principal, dto.mentorId());
+        if (ownershipService.isHr(principal)) {
+            ownershipService.assertOwnsInternResource(principal, id);
+            return ApiResponse.ok(internService.update(id, withoutHrAndUser(dto), null), "Intern updated");
+        }
+        Long hrId = ownershipService.isAdmin(principal) ? dto.hrId() : null;
+        return ApiResponse.ok(internService.update(id, dto, hrId), "Intern updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    public ApiResponse<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        ownershipService.assertOwnsInternResource(principal, id);
         internService.delete(id);
         return ApiResponse.ok(null, "Intern deleted");
     }

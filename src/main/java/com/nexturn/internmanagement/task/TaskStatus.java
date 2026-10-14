@@ -1,5 +1,5 @@
 package com.nexturn.internmanagement.task;
 
 public enum TaskStatus {
-    Pending, In_Progress, Completed
+    Not_Started, Pending, In_Progress, Completed
 }

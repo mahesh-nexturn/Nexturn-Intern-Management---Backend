@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.settings;
+import com.nexturn.internmanagement.settings.dto.SettingsRequestDto;
+import com.nexturn.internmanagement.settings.dto.SettingsResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;

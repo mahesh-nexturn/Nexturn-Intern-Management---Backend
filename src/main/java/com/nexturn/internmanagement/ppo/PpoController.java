@@ -1,10 +1,14 @@
 package com.nexturn.internmanagement.ppo;
+import com.nexturn.internmanagement.ppo.dto.PpoRequestDto;
+import com.nexturn.internmanagement.ppo.dto.PpoResponseDto;
+import com.nexturn.internmanagement.ppo.dto.PpoStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
 import com.nexturn.internmanagement.security.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +31,7 @@ public class PpoController {
     private final OwnershipService ownershipService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<List<PpoResponseDto>> list(@RequestParam(required = false) Long mentorId,
             @AuthenticationPrincipal UserPrincipal principal) {
         if (ownershipService.isMentor(principal)) {
@@ -35,16 +39,15 @@ public class PpoController {
             ownershipService.assertOwnsMentorResource(principal, mentorScope);
             return ApiResponse.ok(ppoService.findByMentor(mentorScope));
         }
-        if (mentorId != null) {
-            return ApiResponse.ok(ppoService.findByMentor(mentorId));
-        }
-        return ApiResponse.ok(ppoService.findAll());
+        Predicate<Long> scope = ownershipService.internScope(principal);
+        List<PpoResponseDto> items = mentorId != null ? ppoService.findByMentor(mentorId) : ppoService.findAll();
+        return ApiResponse.ok(items.stream().filter(p -> scope.test(p.internId())).toList());
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
-    public ApiResponse<PpoStatsDto> stats() {
-        return ApiResponse.ok(ppoService.stats());
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
+    public ApiResponse<PpoStatsDto> stats(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(ppoService.stats(ownershipService.internScope(principal)));
     }
 
     @GetMapping("/my")
@@ -61,25 +64,30 @@ public class PpoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<PpoResponseDto> create(@Valid @RequestBody PpoRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(ppoService.create(dto), "PPO record created");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<PpoResponseDto> update(@PathVariable Long id, @Valid @RequestBody PpoRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, ppoService.findById(id).mentorId());
+        PpoResponseDto existing = ppoService.findById(id);
+        ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
+        ownershipService.assertOwnsInternResource(principal, existing.internId());
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(ppoService.update(id, dto), "PPO record updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    public ApiResponse<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        ownershipService.assertOwnsInternResource(principal, ppoService.findById(id).internId());
         ppoService.delete(id);
         return ApiResponse.ok(null, "PPO record deleted");
     }

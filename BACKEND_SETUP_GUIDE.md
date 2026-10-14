@@ -120,7 +120,7 @@ Option B — terminal:
 .\mvnw.cmd spring-boot:run
 ```
 
-On startup you should see Flyway apply 5 migrations and:
+On startup you should see Flyway apply all migrations (V1–V9) and:
 ```
 Started InternManagementBackendApplication in X seconds
 ```
@@ -156,6 +156,15 @@ Expected: `200 OK` with `data.accessToken` in the response.
 | Email    | admin@nexturn.com  |
 | Password | Admin@123          |
 | Role     | ADMIN              |
+
+### 7.2.1 HR role
+`ADMIN` is the super user. `HR` accounts can use every module except HR management
+(`/api/hr`, admin-only), scoped to the HR's own mentors and interns (`hr_id` on `mentors`
+and `interns`, added in migration V9).
+
+1. As admin, `POST /api/hr` with `{"name","email","password"}` (blank password defaults to `Hr@nexturn123`).
+2. Assign with `PUT /api/hr/{id}/mentors` and `PUT /api/hr/{id}/interns`, body `{"ids":[...]}`.
+3. Log in as the HR; list endpoints, stats, dashboard and reports only include their own data.
 
 ### 7.3 Call a protected endpoint
 ```powershell

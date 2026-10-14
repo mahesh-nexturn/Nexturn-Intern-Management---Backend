@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.announcement;
+import com.nexturn.internmanagement.announcement.dto.AnnouncementRequestDto;
+import com.nexturn.internmanagement.announcement.dto.AnnouncementResponseDto;
+import com.nexturn.internmanagement.announcement.dto.AnnouncementStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;
@@ -29,7 +32,7 @@ public class AnnouncementController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<AnnouncementStatsDto> stats() {
         return ApiResponse.ok(announcementService.stats());
     }
@@ -40,21 +43,21 @@ public class AnnouncementController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<AnnouncementResponseDto> create(@Valid @RequestBody AnnouncementRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.ok(announcementService.create(dto, principal.getId()), "Announcement created");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<AnnouncementResponseDto> update(@PathVariable Long id,
             @Valid @RequestBody AnnouncementRequestDto dto) {
         return ApiResponse.ok(announcementService.update(id, dto), "Announcement updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         announcementService.delete(id);
         return ApiResponse.ok(null, "Announcement deleted");

@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.user;
+import com.nexturn.internmanagement.user.dto.UserRequestDto;
+import com.nexturn.internmanagement.user.dto.UserResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import java.util.List;

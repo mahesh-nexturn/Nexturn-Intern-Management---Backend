@@ -1,8 +1,10 @@
 package com.nexturn.internmanagement.mentor;
+import com.nexturn.internmanagement.mentor.dto.MentorRequestDto;
+import com.nexturn.internmanagement.mentor.dto.MentorResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.InternRepository;
-import com.nexturn.internmanagement.intern.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
 import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;
 import com.nexturn.internmanagement.user.UserRepository;
@@ -36,14 +38,18 @@ public class MentorService {
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor not found: " + id));
     }
 
-    public MentorResponseDto create(MentorRequestDto dto) {
+    public MentorResponseDto create(MentorRequestDto dto, Long hrId) {
         Mentor mentor = new Mentor();
         applyCommonFields(mentor, dto);
         mentor.setUser(resolveUserForCreate(dto));
+        if (hrId != null) {
+            mentor.setHr(resolveHr(hrId));
+        }
         return MentorResponseDto.from(mentorRepository.save(mentor));
     }
 
-    public MentorResponseDto update(Long id, MentorRequestDto dto) {
+    /** @param hrId new owning HR account, or null to leave the current HR unchanged. */
+    public MentorResponseDto update(Long id, MentorRequestDto dto, Long hrId) {
         Mentor mentor = getEntity(id);
         applyCommonFields(mentor, dto);
         if (dto.userId() != null) {
@@ -51,7 +57,23 @@ public class MentorService {
                     .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.userId()));
             mentor.setUser(user);
         }
+        if (hrId != null) {
+            mentor.setHr(resolveHr(hrId));
+        }
         return MentorResponseDto.from(mentorRepository.save(mentor));
+    }
+
+    private User resolveHr(Long hrId) {
+        User hr = userRepository.findById(hrId)
+                .orElseThrow(() -> new ResourceNotFoundException("HR user not found: " + hrId));
+        if (hr.getRole() != Role.HR) {
+            throw new IllegalArgumentException("User " + hrId + " is not an HR account");
+        }
+        return hr;
+    }
+
+    public List<MentorResponseDto> findByHr(Long hrId) {
+        return mentorRepository.findByHrId(hrId).stream().map(MentorResponseDto::from).toList();
     }
 
     public void delete(Long id) {

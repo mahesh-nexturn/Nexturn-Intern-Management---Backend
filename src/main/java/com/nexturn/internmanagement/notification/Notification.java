@@ -51,4 +51,9 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private NotificationStatus status;
+
+    /** When set, only this user sees the notification (in addition to nobody else). */
+    @ManyToOne
+    @JoinColumn(name = "target_user_id")
+    private User targetUser;
 }

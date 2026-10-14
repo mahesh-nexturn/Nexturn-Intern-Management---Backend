@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.evaluation;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationRequestDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationResponseDto;
+import com.nexturn.internmanagement.evaluation.dto.EvaluationStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;
@@ -6,6 +9,7 @@ import com.nexturn.internmanagement.intern.InternRepository;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +59,12 @@ public class EvaluationService {
     }
 
     public EvaluationStatsDto stats() {
-        List<Evaluation> all = evaluationRepository.findAll();
+        return stats(id -> true);
+    }
+
+    public EvaluationStatsDto stats(Predicate<Long> internScope) {
+        List<Evaluation> all = evaluationRepository.findAll().stream()
+                .filter(e -> e.getIntern() != null && internScope.test(e.getIntern().getId())).toList();
         if (all.isEmpty()) {
             return new EvaluationStatsDto(0, 0, 0, 0, 0);
         }

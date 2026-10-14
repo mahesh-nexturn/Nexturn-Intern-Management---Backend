@@ -1,4 +1,8 @@
 package com.nexturn.internmanagement.task;
+import com.nexturn.internmanagement.task.dto.TaskRequestDto;
+import com.nexturn.internmanagement.task.dto.TaskResponseDto;
+import com.nexturn.internmanagement.task.dto.TaskStatsDto;
+import com.nexturn.internmanagement.task.dto.TaskWorkUpdateDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;
@@ -6,6 +10,7 @@ import com.nexturn.internmanagement.intern.InternRepository;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,15 +54,38 @@ public class TaskService {
         return TaskResponseDto.from(taskRepository.save(task));
     }
 
+    public TaskResponseDto updateWork(Long id, TaskWorkUpdateDto dto, boolean canEditDescription) {
+        Task task = getEntity(id);
+        if (dto.status() != null && !dto.status().isBlank()) {
+            task.setStatus(TaskStatus.valueOf(dto.status().replace(' ', '_')));
+        }
+        if (dto.progress() != null) {
+            task.setProgress(dto.progress());
+        }
+        if (canEditDescription && dto.description() != null) {
+            task.setDescription(dto.description());
+        }
+        if (canEditDescription && dto.title() != null && !dto.title().isBlank()) {
+            task.setTitle(dto.title().trim());
+        }
+        return TaskResponseDto.from(taskRepository.save(task));
+    }
+
     public void delete(Long id) {
         taskRepository.delete(getEntity(id));
     }
 
     public TaskStatsDto stats() {
+        return stats(id -> true);
+    }
+
+    public TaskStatsDto stats(Predicate<Long> internScope) {
+        List<Task> scoped = taskRepository.findAll().stream()
+                .filter(t -> t.getIntern() != null && internScope.test(t.getIntern().getId())).toList();
         return new TaskStatsDto(
-                taskRepository.countByStatus(TaskStatus.Pending),
-                taskRepository.countByStatus(TaskStatus.In_Progress),
-                taskRepository.countByStatus(TaskStatus.Completed));
+                scoped.stream().filter(t -> t.getStatus() == TaskStatus.Pending).count(),
+                scoped.stream().filter(t -> t.getStatus() == TaskStatus.In_Progress).count(),
+                scoped.stream().filter(t -> t.getStatus() == TaskStatus.Completed).count());
     }
 
     private void applyDto(Task task, TaskRequestDto dto) {
@@ -73,7 +101,7 @@ public class TaskService {
         task.setDescription(dto.description());
         task.setPriority(Priority.valueOf(dto.priority()));
         task.setDueDate(dto.dueDate());
-        task.setStatus(TaskStatus.valueOf((dto.status() == null ? "Pending" : dto.status()).replace(' ', '_')));
+        task.setStatus(TaskStatus.valueOf((dto.status() == null ? "Not_Started" : dto.status()).replace(' ', '_')));
         task.setProgress(dto.progress() == null ? 0 : dto.progress());
     }
 }

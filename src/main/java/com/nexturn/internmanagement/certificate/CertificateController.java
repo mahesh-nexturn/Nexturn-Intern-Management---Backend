@@ -1,10 +1,14 @@
 package com.nexturn.internmanagement.certificate;
+import com.nexturn.internmanagement.certificate.dto.CertificateRequestDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateResponseDto;
+import com.nexturn.internmanagement.certificate.dto.CertificateStatsDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
 import com.nexturn.internmanagement.security.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,17 +47,22 @@ public class CertificateController {
             return ApiResponse.ok(certificateService.findByMentor(mentorScope));
         }
         if (internId != null) {
-            return ApiResponse.ok(certificateService.findByIntern(internId));
+            return ApiResponse.ok(scoped(principal, certificateService.findByIntern(internId)));
         }
         if (mentorId != null) {
-            return ApiResponse.ok(certificateService.findByMentor(mentorId));
+            return ApiResponse.ok(scoped(principal, certificateService.findByMentor(mentorId)));
         }
-        return ApiResponse.ok(certificateService.findAll());
+        return ApiResponse.ok(scoped(principal, certificateService.findAll()));
+    }
+
+    private List<CertificateResponseDto> scoped(UserPrincipal principal, List<CertificateResponseDto> items) {
+        Predicate<Long> scope = ownershipService.internScope(principal);
+        return items.stream().filter(c -> scope.test(c.internId())).toList();
     }
 
     @GetMapping("/stats")
-    public ApiResponse<CertificateStatsDto> stats() {
-        return ApiResponse.ok(certificateService.stats());
+    public ApiResponse<CertificateStatsDto> stats(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(certificateService.stats(ownershipService.internScope(principal)));
     }
 
     @GetMapping("/{id}")
@@ -66,21 +75,29 @@ public class CertificateController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<CertificateResponseDto> create(@Valid @RequestBody CertificateRequestDto dto) {
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    public ApiResponse<CertificateResponseDto> create(@Valid @RequestBody CertificateRequestDto dto,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(certificateService.create(dto), "Certificate created");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<CertificateResponseDto> update(@PathVariable Long id,
-            @Valid @RequestBody CertificateRequestDto dto) {
+            @Valid @RequestBody CertificateRequestDto dto,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        ownershipService.assertOwnsInternResource(principal, certificateService.findById(id).internId());
+        ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(certificateService.update(id, dto), "Certificate updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
+    public ApiResponse<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        ownershipService.assertOwnsInternResource(principal, certificateService.findById(id).internId());
         certificateService.delete(id);
         return ApiResponse.ok(null, "Certificate deleted");
     }

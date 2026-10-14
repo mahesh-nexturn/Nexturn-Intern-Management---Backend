@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.ppo;
+import com.nexturn.internmanagement.ppo.dto.PpoRequestDto;
+import com.nexturn.internmanagement.ppo.dto.PpoResponseDto;
+import com.nexturn.internmanagement.ppo.dto.PpoStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;
@@ -6,6 +9,7 @@ import com.nexturn.internmanagement.intern.InternRepository;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -63,10 +67,15 @@ public class PpoService {
     }
 
     public PpoStatsDto stats() {
-        List<Ppo> all = ppoRepository.findAll();
-        long eligible = ppoRepository.countByStatus(PpoStatus.Eligible);
-        long notEligible = ppoRepository.countByStatus(PpoStatus.Not_Eligible);
-        long offered = ppoRepository.countByStatus(PpoStatus.Offered);
+        return stats(id -> true);
+    }
+
+    public PpoStatsDto stats(Predicate<Long> internScope) {
+        List<Ppo> all = ppoRepository.findAll().stream()
+                .filter(p -> p.getIntern() != null && internScope.test(p.getIntern().getId())).toList();
+        long eligible = all.stream().filter(p -> p.getStatus() == PpoStatus.Eligible).count();
+        long notEligible = all.stream().filter(p -> p.getStatus() == PpoStatus.Not_Eligible).count();
+        long offered = all.stream().filter(p -> p.getStatus() == PpoStatus.Offered).count();
         return new PpoStatsDto(all.size(), eligible, notEligible, offered);
     }
 

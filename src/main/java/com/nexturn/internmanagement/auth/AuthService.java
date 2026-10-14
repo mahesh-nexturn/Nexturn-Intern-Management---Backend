@@ -1,4 +1,8 @@
 package com.nexturn.internmanagement.auth;
+import com.nexturn.internmanagement.auth.dto.AuthResponse;
+import com.nexturn.internmanagement.auth.dto.ChangePasswordRequest;
+import com.nexturn.internmanagement.auth.dto.LoginRequest;
+import com.nexturn.internmanagement.auth.dto.RefreshRequest;
 
 import com.nexturn.internmanagement.security.JwtService;
 import com.nexturn.internmanagement.security.UserPrincipal;

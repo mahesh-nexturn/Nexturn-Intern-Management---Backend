@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.notification;
+import com.nexturn.internmanagement.notification.dto.NotificationRequestDto;
+import com.nexturn.internmanagement.notification.dto.NotificationResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;
@@ -25,7 +27,7 @@ public class NotificationController {
 
     @GetMapping
     public ApiResponse<List<NotificationResponseDto>> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return ApiResponse.ok(notificationService.findForRole(principal.getUser().getRole()));
+        return ApiResponse.ok(notificationService.findForUser(principal.getUser().getRole(), principal.getId()));
     }
 
     @GetMapping("/{id}")
@@ -34,14 +36,14 @@ public class NotificationController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<NotificationResponseDto> create(@Valid @RequestBody NotificationRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.ok(notificationService.create(dto, principal.getId()), "Notification created");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<NotificationResponseDto> update(@PathVariable Long id,
             @Valid @RequestBody NotificationRequestDto dto) {
         return ApiResponse.ok(notificationService.update(id, dto), "Notification updated");
@@ -53,7 +55,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         notificationService.delete(id);
         return ApiResponse.ok(null, "Notification deleted");

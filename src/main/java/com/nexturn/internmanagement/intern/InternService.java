@@ -1,12 +1,15 @@
 package com.nexturn.internmanagement.intern;
+import com.nexturn.internmanagement.intern.dto.InternRequestDto;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
+import com.nexturn.internmanagement.intern.dto.InternDashboardDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import com.nexturn.internmanagement.meeting.MeetingRepository;
-import com.nexturn.internmanagement.meeting.MeetingResponseDto;
+import com.nexturn.internmanagement.meeting.dto.MeetingResponseDto;
 import com.nexturn.internmanagement.task.TaskRepository;
-import com.nexturn.internmanagement.task.TaskResponseDto;
+import com.nexturn.internmanagement.task.dto.TaskResponseDto;
 import com.nexturn.internmanagement.task.TaskStatus;
 import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;
@@ -38,6 +41,10 @@ public class InternService {
         return internRepository.findByMentorId(mentorId).stream().map(InternResponseDto::from).toList();
     }
 
+    public List<InternResponseDto> findByHr(Long hrId) {
+        return internRepository.findByHrId(hrId).stream().map(InternResponseDto::from).toList();
+    }
+
     public InternResponseDto findById(Long id) {
         return InternResponseDto.from(getEntity(id));
     }
@@ -47,14 +54,21 @@ public class InternService {
                 .orElseThrow(() -> new ResourceNotFoundException("Intern not found: " + id));
     }
 
-    public InternResponseDto create(InternRequestDto dto) {
+    /** @param hrId HR account that will own the intern; when null the mentor's HR (if any) is used. */
+    public InternResponseDto create(InternRequestDto dto, Long hrId) {
         Intern intern = new Intern();
         applyCommonFields(intern, dto);
         intern.setUser(resolveUserForCreate(dto));
+        if (hrId != null) {
+            intern.setHr(resolveHr(hrId));
+        } else if (intern.getMentor() != null) {
+            intern.setHr(intern.getMentor().getHr());
+        }
         return InternResponseDto.from(internRepository.save(intern));
     }
 
-    public InternResponseDto update(Long id, InternRequestDto dto) {
+    /** @param hrId new owning HR account, or null to leave the current HR unchanged. */
+    public InternResponseDto update(Long id, InternRequestDto dto, Long hrId) {
         Intern intern = getEntity(id);
         applyCommonFields(intern, dto);
         if (dto.userId() != null) {
@@ -62,7 +76,19 @@ public class InternService {
                     .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.userId()));
             intern.setUser(user);
         }
+        if (hrId != null) {
+            intern.setHr(resolveHr(hrId));
+        }
         return InternResponseDto.from(internRepository.save(intern));
+    }
+
+    private User resolveHr(Long hrId) {
+        User hr = userRepository.findById(hrId)
+                .orElseThrow(() -> new ResourceNotFoundException("HR user not found: " + hrId));
+        if (hr.getRole() != Role.HR) {
+            throw new IllegalArgumentException("User " + hrId + " is not an HR account");
+        }
+        return hr;
     }
 
     public void delete(Long id) {

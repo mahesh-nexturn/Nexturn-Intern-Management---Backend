@@ -1,10 +1,13 @@
 package com.nexturn.internmanagement.meeting;
+import com.nexturn.internmanagement.meeting.dto.MeetingRequestDto;
+import com.nexturn.internmanagement.meeting.dto.MeetingResponseDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
 import com.nexturn.internmanagement.security.UserPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,17 +46,22 @@ public class MeetingController {
             return ApiResponse.ok(meetingService.findByMentor(mentorScope));
         }
         if (internId != null) {
-            return ApiResponse.ok(meetingService.findByIntern(internId));
+            return ApiResponse.ok(scoped(principal, meetingService.findByIntern(internId)));
         }
         if (mentorId != null) {
-            return ApiResponse.ok(meetingService.findByMentor(mentorId));
+            return ApiResponse.ok(scoped(principal, meetingService.findByMentor(mentorId)));
         }
-        return ApiResponse.ok(meetingService.findAll());
+        return ApiResponse.ok(scoped(principal, meetingService.findAll()));
+    }
+
+    private List<MeetingResponseDto> scoped(UserPrincipal principal, List<MeetingResponseDto> items) {
+        Predicate<Long> scope = ownershipService.internScope(principal);
+        return items.stream().filter(m -> scope.test(m.internId())).toList();
     }
 
     @GetMapping("/upcoming")
-    public ApiResponse<List<MeetingResponseDto>> upcoming() {
-        return ApiResponse.ok(meetingService.upcoming());
+    public ApiResponse<List<MeetingResponseDto>> upcoming(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(scoped(principal, meetingService.upcoming()));
     }
 
     @GetMapping("/{id}")
@@ -66,26 +74,32 @@ public class MeetingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<MeetingResponseDto> create(@Valid @RequestBody MeetingRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
-        return ApiResponse.ok(meetingService.create(dto), "Meeting scheduled");
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
+        return ApiResponse.ok(meetingService.create(dto, principal.getUser()), "Meeting scheduled");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<MeetingResponseDto> update(@PathVariable Long id, @Valid @RequestBody MeetingRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, meetingService.findById(id).mentorId());
+        MeetingResponseDto existing = meetingService.findById(id);
+        ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
+        ownershipService.assertOwnsInternResource(principal, existing.internId());
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
-        return ApiResponse.ok(meetingService.update(id, dto), "Meeting updated");
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
+        return ApiResponse.ok(meetingService.update(id, dto, principal.getUser()), "Meeting updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, meetingService.findById(id).mentorId());
+        MeetingResponseDto existing = meetingService.findById(id);
+        ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
+        ownershipService.assertOwnsInternResource(principal, existing.internId());
         meetingService.delete(id);
         return ApiResponse.ok(null, "Meeting deleted");
     }

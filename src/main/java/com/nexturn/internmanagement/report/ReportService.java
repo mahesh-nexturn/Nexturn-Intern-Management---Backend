@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.report;
+import com.nexturn.internmanagement.report.dto.InternReportDto;
 
 import com.nexturn.internmanagement.attendance.Attendance;
 import com.nexturn.internmanagement.attendance.AttendanceRepository;
@@ -35,6 +36,10 @@ public class ReportService {
 
     public List<InternReportDto> generateForMentor(Long mentorId) {
         return internRepository.findByMentorId(mentorId).stream().map(this::buildReport).toList();
+    }
+
+    public List<InternReportDto> generateForHr(Long hrId) {
+        return internRepository.findByHrId(hrId).stream().map(this::buildReport).toList();
     }
 
     public InternReportDto generateForIntern(Long internId) {

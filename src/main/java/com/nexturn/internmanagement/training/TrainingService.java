@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.training;
+import com.nexturn.internmanagement.training.dto.TrainingRequestDto;
+import com.nexturn.internmanagement.training.dto.TrainingResponseDto;
+import com.nexturn.internmanagement.training.dto.TrainingStatsDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.intern.Intern;
@@ -6,6 +9,7 @@ import com.nexturn.internmanagement.intern.InternRepository;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -55,10 +59,16 @@ public class TrainingService {
     }
 
     public TrainingStatsDto stats() {
+        return stats(id -> true);
+    }
+
+    public TrainingStatsDto stats(Predicate<Long> internScope) {
+        List<Training> scoped = trainingRepository.findAll().stream()
+                .filter(t -> t.getIntern() != null && internScope.test(t.getIntern().getId())).toList();
         return new TrainingStatsDto(
-                trainingRepository.countByStatus(TrainingStatus.Not_Started),
-                trainingRepository.countByStatus(TrainingStatus.In_Progress),
-                trainingRepository.countByStatus(TrainingStatus.Completed));
+                scoped.stream().filter(t -> t.getStatus() == TrainingStatus.Not_Started).count(),
+                scoped.stream().filter(t -> t.getStatus() == TrainingStatus.In_Progress).count(),
+                scoped.stream().filter(t -> t.getStatus() == TrainingStatus.Completed).count());
     }
 
     private void applyDto(Training training, TrainingRequestDto dto) {

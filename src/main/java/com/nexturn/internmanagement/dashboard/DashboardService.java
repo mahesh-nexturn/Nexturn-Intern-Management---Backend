@@ -1,4 +1,7 @@
 package com.nexturn.internmanagement.dashboard;
+import com.nexturn.internmanagement.dashboard.dto.AdminDashboardDto;
+import com.nexturn.internmanagement.dashboard.dto.InternDashboardSummaryDto;
+import com.nexturn.internmanagement.dashboard.dto.MentorDashboardDto;
 
 import com.nexturn.internmanagement.announcement.AnnouncementService;
 import com.nexturn.internmanagement.attendance.AttendanceRepository;
@@ -8,7 +11,7 @@ import com.nexturn.internmanagement.meeting.MeetingRepository;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import com.nexturn.internmanagement.task.TaskRepository;
 import com.nexturn.internmanagement.task.TaskService;
-import com.nexturn.internmanagement.task.TaskStatsDto;
+import com.nexturn.internmanagement.task.dto.TaskStatsDto;
 import com.nexturn.internmanagement.task.TaskStatus;
 import com.nexturn.internmanagement.training.TrainingService;
 import com.nexturn.internmanagement.user.UserRepository;
@@ -47,6 +50,32 @@ public class DashboardService {
                 totalUsers,
                 taskStats,
                 trainingService.stats(),
+                announcementService.stats(),
+                todayPresentCount,
+                upcomingMeetings);
+    }
+
+    /** Same shape as the admin dashboard but limited to the HR's own mentors and interns. */
+    public AdminDashboardDto hrDashboard(Long hrId) {
+        java.util.Set<Long> internIds = internRepository.findByHrId(hrId).stream()
+                .map(i -> i.getId()).collect(java.util.stream.Collectors.toSet());
+        long totalMentors = mentorRepository.findByHrId(hrId).size();
+        long todayPresentCount = attendanceRepository.findAll().stream()
+                .filter(a -> a.getIntern() != null && internIds.contains(a.getIntern().getId())
+                        && LocalDate.now().equals(a.getAttendanceDate())
+                        && a.getStatus() == AttendanceStatus.Present)
+                .count();
+        long upcomingMeetings = meetingRepository.findAll().stream()
+                .filter(m -> m.getIntern() != null && internIds.contains(m.getIntern().getId())
+                        && !m.getMeetingDate().isBefore(LocalDate.now())
+                        && m.getStatus() == com.nexturn.internmanagement.meeting.MeetingStatus.Scheduled)
+                .count();
+        return new AdminDashboardDto(
+                internIds.size(),
+                totalMentors,
+                internIds.size() + totalMentors,
+                taskService.stats(internIds::contains),
+                trainingService.stats(internIds::contains),
                 announcementService.stats(),
                 todayPresentCount,
                 upcomingMeetings);

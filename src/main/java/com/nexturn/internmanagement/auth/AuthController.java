@@ -1,8 +1,12 @@
 package com.nexturn.internmanagement.auth;
+import com.nexturn.internmanagement.auth.dto.AuthResponse;
+import com.nexturn.internmanagement.auth.dto.ChangePasswordRequest;
+import com.nexturn.internmanagement.auth.dto.LoginRequest;
+import com.nexturn.internmanagement.auth.dto.RefreshRequest;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.UserPrincipal;
-import com.nexturn.internmanagement.user.UserResponseDto;
+import com.nexturn.internmanagement.user.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -1,4 +1,5 @@
 package com.nexturn.internmanagement.report;
+import com.nexturn.internmanagement.report.dto.InternReportDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
@@ -31,7 +32,7 @@ public class ReportController {
     }
 
     @GetMapping("/export")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ResponseEntity<byte[]> export(@AuthenticationPrincipal UserPrincipal principal) {
         byte[] excel = reportExportService.exportToExcel(scopedReports(principal));
         String filename = "intern-reports.xlsx";
@@ -59,6 +60,9 @@ public class ReportController {
         }
         if (ownershipService.isMentor(principal)) {
             return reportService.generateForMentor(ownershipService.currentMentorId(principal));
+        }
+        if (ownershipService.isHr(principal)) {
+            return reportService.generateForHr(principal.getId());
         }
         return reportService.generate();
     }

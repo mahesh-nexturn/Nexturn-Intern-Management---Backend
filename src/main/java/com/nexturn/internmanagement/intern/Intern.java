@@ -44,6 +44,10 @@ public class Intern {
     @JoinColumn(name = "mentor_id")
     private Mentor mentor;
 
+    @ManyToOne
+    @JoinColumn(name = "hr_id")
+    private User hr;
+
     @Column(nullable = false)
     private String name;
 

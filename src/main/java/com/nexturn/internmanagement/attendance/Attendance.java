@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.Instant;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,4 +48,14 @@ public class Attendance {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private AttendanceStatus status;
+
+    @Column(name = "check_in_time")
+    private Instant checkInTime;
+
+    @Column(name = "check_out_time")
+    private Instant checkOutTime;
+
+    /** Total seconds worked in closed sessions; the open session (if any) is added on top. */
+    @Column(name = "worked_seconds", nullable = false)
+    private long workedSeconds;
 }

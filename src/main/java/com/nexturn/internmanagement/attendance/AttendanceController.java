@@ -1,4 +1,8 @@
 package com.nexturn.internmanagement.attendance;
+import com.nexturn.internmanagement.attendance.dto.AttendanceRequestDto;
+import com.nexturn.internmanagement.attendance.dto.AttendanceResponseDto;
+import com.nexturn.internmanagement.attendance.dto.AttendanceStatsDto;
+import com.nexturn.internmanagement.attendance.dto.TodayAttendanceDto;
 
 import com.nexturn.internmanagement.common.ApiResponse;
 import com.nexturn.internmanagement.security.OwnershipService;
@@ -6,6 +10,7 @@ import com.nexturn.internmanagement.security.UserPrincipal;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,12 +35,41 @@ public class AttendanceController {
 
     @GetMapping
     public ApiResponse<List<AttendanceResponseDto>> list(@RequestParam(required = false) Long internId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal UserPrincipal principal) {
+        List<AttendanceResponseDto> items;
         if (ownershipService.isIntern(principal)) {
-            return ApiResponse.ok(attendanceService.findByIntern(ownershipService.currentInternId(principal)));
+            items = attendanceService.findByIntern(ownershipService.currentInternId(principal));
+        } else {
+            Predicate<Long> scope = ownershipService.internScope(principal);
+            items = (internId != null ? attendanceService.findByIntern(internId) : attendanceService.findAll())
+                    .stream().filter(a -> scope.test(a.internId())).toList();
         }
-        return ApiResponse.ok(internId != null ? attendanceService.findByIntern(internId)
-                : attendanceService.findAll());
+        return ApiResponse.ok(items.stream()
+                .filter(a -> from == null || !a.date().isBefore(from))
+                .filter(a -> to == null || !a.date().isAfter(to))
+                .filter(a -> status == null || status.isBlank() || status.equalsIgnoreCase(String.valueOf(a.status())))
+                .toList());
+    }
+
+    @GetMapping("/today")
+    @PreAuthorize("hasRole('INTERN')")
+    public ApiResponse<TodayAttendanceDto> today(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(attendanceService.today(ownershipService.currentInternId(principal)));
+    }
+
+    @PostMapping("/check-in")
+    @PreAuthorize("hasRole('INTERN')")
+    public ApiResponse<TodayAttendanceDto> checkIn(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(attendanceService.checkIn(ownershipService.currentInternId(principal)), "Checked in");
+    }
+
+    @PostMapping("/check-out")
+    @PreAuthorize("hasRole('INTERN')")
+    public ApiResponse<TodayAttendanceDto> checkOut(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(attendanceService.checkOut(ownershipService.currentInternId(principal)), "Checked out");
     }
 
     @GetMapping("/calendar")
@@ -65,27 +99,33 @@ public class AttendanceController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<AttendanceResponseDto> create(@Valid @RequestBody AttendanceRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(attendanceService.upsert(dto), "Attendance recorded");
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<AttendanceResponseDto> update(@PathVariable Long id,
             @Valid @RequestBody AttendanceRequestDto dto,
             @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, attendanceService.findById(id).mentorId());
+        AttendanceResponseDto existing = attendanceService.findById(id);
+        ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
+        ownershipService.assertOwnsInternResource(principal, existing.internId());
         ownershipService.assertOwnsMentorResource(principal, dto.mentorId());
+        ownershipService.assertOwnsInternResource(principal, dto.internId());
         return ApiResponse.ok(attendanceService.update(id, dto), "Attendance updated");
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
-        ownershipService.assertOwnsMentorResource(principal, attendanceService.findById(id).mentorId());
+        AttendanceResponseDto existing = attendanceService.findById(id);
+        ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
+        ownershipService.assertOwnsInternResource(principal, existing.internId());
         attendanceService.delete(id);
         return ApiResponse.ok(null, "Attendance deleted");
     }

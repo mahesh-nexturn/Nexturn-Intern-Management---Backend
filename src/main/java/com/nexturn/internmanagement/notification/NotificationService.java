@@ -1,4 +1,6 @@
 package com.nexturn.internmanagement.notification;
+import com.nexturn.internmanagement.notification.dto.NotificationRequestDto;
+import com.nexturn.internmanagement.notification.dto.NotificationResponseDto;
 
 import com.nexturn.internmanagement.common.ResourceNotFoundException;
 import com.nexturn.internmanagement.user.Role;
@@ -16,15 +18,30 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
-    public List<NotificationResponseDto> findForRole(Role role) {
+    public List<NotificationResponseDto> findForUser(Role role, Long userId) {
         NotificationRecipient recipient = switch (role) {
-            case ADMIN -> NotificationRecipient.HR;
+            case ADMIN, HR -> NotificationRecipient.HR;
             case MENTOR -> NotificationRecipient.Mentor;
             case INTERN -> NotificationRecipient.Intern;
         };
         return notificationRepository
                 .findByRecipientInOrderByNotificationDateDesc(List.of(NotificationRecipient.All, recipient))
-                .stream().map(NotificationResponseDto::from).toList();
+                .stream()
+                .filter(n -> n.getTargetUser() == null || n.getTargetUser().getId().equals(userId))
+                .map(NotificationResponseDto::from).toList();
+    }
+
+    /** Sends a notification that only {@code target} (or, when null, everyone in {@code audience}) can see. */
+    public void notify(User from, User target, NotificationRecipient audience, String title, String message) {
+        notificationRepository.save(Notification.builder()
+                .title(title)
+                .message(message)
+                .recipient(audience)
+                .createdBy(from)
+                .targetUser(target)
+                .notificationDate(LocalDateTime.now())
+                .status(NotificationStatus.Unread)
+                .build());
     }
 
     public NotificationResponseDto findById(Long id) {

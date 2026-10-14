@@ -1,5 +1,6 @@
 package com.nexturn.internmanagement.attendance;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     long countByInternIdAndStatus(Long internId, AttendanceStatus status);
 
     long countByAttendanceDateAndStatus(LocalDate date, AttendanceStatus status);
+
+    Optional<Attendance> findFirstByInternIdAndCheckInTimeIsNotNullAndCheckOutTimeIsNull(Long internId);
+
+    List<Attendance> findByCheckInTimeBeforeAndCheckOutTimeIsNull(Instant cutoff);
 }
