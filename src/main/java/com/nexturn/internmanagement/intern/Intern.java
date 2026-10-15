@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,6 +59,9 @@ public class Intern {
 
     @Column(nullable = false)
     private String status;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

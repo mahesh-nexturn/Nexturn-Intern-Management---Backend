@@ -74,7 +74,7 @@ public class MeetingService {
                         + (meeting.getMeetingTime() == null ? "" : " at " + meeting.getMeetingTime());
         notificationService.notify(from, target, NotificationRecipient.Intern,
                 heading + ": " + meeting.getTitle(),
-                from.getName() + " scheduled a meeting \"" + meeting.getTitle() + "\"" + when + ".");
+                from.getName() + " scheduled a meeting \"" + meeting.getTitle() + "\"" + when + ".", "/meetings");
     }
 
     public void delete(Long id) {

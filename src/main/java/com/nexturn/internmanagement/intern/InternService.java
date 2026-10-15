@@ -14,6 +14,7 @@ import com.nexturn.internmanagement.task.TaskStatus;
 import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;
 import com.nexturn.internmanagement.user.UserRepository;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -114,7 +115,13 @@ public class InternService {
         intern.setName(dto.name());
         intern.setEmail(dto.email());
         intern.setDepartment(dto.department());
-        intern.setStatus(dto.status() == null ? "Active" : dto.status());
+        LocalDate endDate = dto.endDate() != null ? dto.endDate() : LocalDate.of(LocalDate.now().getYear(), 12, 31);
+        String status = dto.status() == null ? "Active" : dto.status();
+        if ("Active".equals(status) && endDate.isBefore(LocalDate.now())) {
+            status = "Completed";
+        }
+        intern.setEndDate(endDate);
+        intern.setStatus(status);
         if (dto.mentorId() != null) {
             Mentor mentor = mentorRepository.findById(dto.mentorId())
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found: " + dto.mentorId()));

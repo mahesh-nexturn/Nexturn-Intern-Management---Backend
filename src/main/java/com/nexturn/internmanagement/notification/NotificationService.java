@@ -33,9 +33,15 @@ public class NotificationService {
 
     /** Sends a notification that only {@code target} (or, when null, everyone in {@code audience}) can see. */
     public void notify(User from, User target, NotificationRecipient audience, String title, String message) {
+        notify(from, target, audience, title, message, null);
+    }
+
+    public void notify(User from, User target, NotificationRecipient audience, String title, String message,
+            String link) {
         notificationRepository.save(Notification.builder()
                 .title(title)
                 .message(message)
+                .link(link)
                 .recipient(audience)
                 .createdBy(from)
                 .targetUser(target)

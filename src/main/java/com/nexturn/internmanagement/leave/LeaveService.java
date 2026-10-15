@@ -71,7 +71,7 @@ public class LeaveService {
             notificationService.notify(intern.getUser(), intern.getHr(), NotificationRecipient.HR,
                     "Leave request from " + intern.getName(),
                     intern.getName() + " applied for " + leave.getLeaveType() + " from " + leave.getFromDate()
-                            + " to " + leave.getToDate() + ". Please review.");
+                            + " to " + leave.getToDate() + ". Please review.", "/attendance");
         }
         return LeaveResponseDto.from(leave);
     }
@@ -95,7 +95,8 @@ public class LeaveService {
             notificationService.notify(decidedBy, intern.getUser(), NotificationRecipient.Intern,
                     "Leave request " + leave.getStatus().name().toLowerCase(),
                     "Your " + leave.getLeaveType() + " from " + leave.getFromDate() + " to " + leave.getToDate()
-                            + " was " + leave.getStatus().name().toLowerCase() + " by " + decidedBy.getName() + ".");
+                            + " was " + leave.getStatus().name().toLowerCase() + " by " + decidedBy.getName() + ".",
+                    "/attendance");
         }
         return LeaveResponseDto.from(leave);
     }

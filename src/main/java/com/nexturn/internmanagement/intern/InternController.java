@@ -74,7 +74,7 @@ public class InternController {
 
     private InternRequestDto withoutHrAndUser(InternRequestDto dto) {
         return new InternRequestDto(dto.name(), dto.email(), dto.department(), dto.status(), dto.mentorId(),
-                null, null);
+                null, null, dto.endDate());
     }
 
     @PutMapping("/{id}")

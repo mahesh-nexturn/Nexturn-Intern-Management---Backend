@@ -33,10 +33,10 @@ public class TaskCommentController {
     public record CommentRequest(@NotBlank @Size(max = 2000) String content) {}
 
     public record CommentResponse(Long id, Long authorId, String authorName, String authorRole, String content,
-            LocalDateTime createdAt) {
+            LocalDateTime createdAt, boolean edited) {
         static CommentResponse from(TaskComment c) {
             return new CommentResponse(c.getId(), c.getAuthor().getId(), c.getAuthor().getName(),
-                    c.getAuthor().getRole().name(), c.getContent(), c.getCreatedAt());
+                    c.getAuthor().getRole().name(), c.getContent(), c.getCreatedAt(), c.getUpdatedAt() != null);
         }
     }
 
@@ -79,11 +79,13 @@ public class TaskCommentController {
 
         if (task.getMentor() != null && task.getMentor().getUser() != null
                 && !task.getMentor().getUser().getId().equals(author.getId())) {
-            notificationService.notify(author, task.getMentor().getUser(), NotificationRecipient.Mentor, title, message);
+            notificationService.notify(author, task.getMentor().getUser(), NotificationRecipient.Mentor, title, message,
+                    "/tasks/" + task.getId());
         }
         if (task.getIntern() != null && task.getIntern().getUser() != null
                 && !task.getIntern().getUser().getId().equals(author.getId())) {
-            notificationService.notify(author, task.getIntern().getUser(), NotificationRecipient.Intern, title, message);
+            notificationService.notify(author, task.getIntern().getUser(), NotificationRecipient.Intern, title, message,
+                    "/tasks/" + task.getId());
         }
     }
 
@@ -99,6 +101,7 @@ public class TaskCommentController {
             throw new AccessDeniedException("You can edit only your own comments");
         }
         comment.setContent(body.content().trim());
+        comment.setUpdatedAt(LocalDateTime.now());
         return ApiResponse.ok(CommentResponse.from(commentRepository.save(comment)), "Comment updated");
     }
 

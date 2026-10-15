@@ -4,8 +4,12 @@ import com.nexturn.internmanagement.auth.dto.ChangePasswordRequest;
 import com.nexturn.internmanagement.auth.dto.LoginRequest;
 import com.nexturn.internmanagement.auth.dto.RefreshRequest;
 
+import com.nexturn.internmanagement.common.LoginExpiredException;
+import com.nexturn.internmanagement.intern.InternRepository;
+import com.nexturn.internmanagement.intern.dto.InternResponseDto;
 import com.nexturn.internmanagement.security.JwtService;
 import com.nexturn.internmanagement.security.UserPrincipal;
+import com.nexturn.internmanagement.user.Role;
 import com.nexturn.internmanagement.user.User;
 import com.nexturn.internmanagement.user.UserRepository;
 import java.security.MessageDigest;
@@ -29,9 +33,21 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final InternRepository internRepository;
 
     @Value("${jwt.refresh-token-expiry-ms}")
     private long refreshTokenExpiryMs;
+
+    private void assertInternNotCompleted(User user) {
+        if (user.getRole() != Role.INTERN) {
+            return;
+        }
+        internRepository.findByUserId(user.getId()).ifPresent(intern -> {
+            if ("Completed".equals(InternResponseDto.from(intern).status())) {
+                throw new LoginExpiredException();
+            }
+        });
+    }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -41,6 +57,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
         UserPrincipal principal = new UserPrincipal(user);
+        assertInternNotCompleted(user);
 
         String accessToken = jwtService.generateAccessToken(principal);
         String refreshToken = jwtService.generateRefreshToken(principal);
@@ -60,6 +77,7 @@ public class AuthService {
         }
 
         User user = stored.getUser();
+        assertInternNotCompleted(user);
         String email = jwtService.extractEmail(request.refreshToken());
         if (!jwtService.isTokenValid(request.refreshToken(), email)) {
             throw new BadCredentialsException("Invalid refresh token");

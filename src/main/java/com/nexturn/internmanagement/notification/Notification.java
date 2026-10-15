@@ -56,4 +56,7 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "target_user_id")
     private User targetUser;
+
+    /** Frontend route the notification opens, e.g. /tasks/5. */
+    private String link;
 }
