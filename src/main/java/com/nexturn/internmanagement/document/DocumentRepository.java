@@ -8,4 +8,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     List<Document> findByUploadedById(Long userId);
 
     List<Document> findAllByOrderByUploadDateDesc(Pageable pageable);
+
+    List<Document> findByUploadedByIdOrderByUploadDateDesc(Long userId, Pageable pageable);
 }

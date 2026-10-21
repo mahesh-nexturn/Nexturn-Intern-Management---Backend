@@ -52,7 +52,10 @@ public class DocumentService {
             Files.createDirectories(dir);
             String originalName = file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
             String storedName = UUID.randomUUID() + "_" + originalName;
-            Path target = dir.resolve(storedName);
+            Path target = dir.resolve(storedName).normalize();
+            if (!target.startsWith(dir)) {
+                throw new IllegalArgumentException("Invalid file name");
+            }
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
             User uploader = userRepository.findById(uploadedByUserId)
@@ -61,7 +64,7 @@ public class DocumentService {
             Document document = Document.builder()
                     .fileName(originalName)
                     .fileUrl(storedName)
-                    .documentType(DocumentType.valueOf(documentType.replace(' ', '_')))
+                    .documentType(type)
                     .uploadedBy(uploader)
                     .uploadDate(LocalDateTime.now())
                     .build();
@@ -69,6 +72,30 @@ public class DocumentService {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to store file: " + e.getMessage(), e);
         }
+    }
+
+    private static String sanitizeFileName(String name) {
+        String base = name == null ? "file" : name.replace('\\', '/');
+        base = base.substring(base.lastIndexOf('/') + 1).replaceAll("[^A-Za-z0-9._ -]", "_").trim();
+        if (base.isEmpty() || base.equals(".") || base.equals("..")) {
+            return "file";
+        }
+        return base.length() > 150 ? base.substring(base.length() - 150) : base;
+    }
+
+    private static DocumentType parseType(String value) {
+        try {
+            return DocumentType.valueOf(value.trim().replace(' ', '_'));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new IllegalArgumentException("Invalid document type: " + value);
+        }
+    }
+
+    public List<DocumentResponseDto> latestForUser(Long userId, int limit) {
+        return documentRepository
+                .findByUploadedByIdOrderByUploadDateDesc(userId,
+                        org.springframework.data.domain.PageRequest.of(0, Math.min(Math.max(limit, 1), 50)))
+                .stream().map(DocumentResponseDto::from).toList();
     }
 
     public Resource loadAsResource(Long id) {

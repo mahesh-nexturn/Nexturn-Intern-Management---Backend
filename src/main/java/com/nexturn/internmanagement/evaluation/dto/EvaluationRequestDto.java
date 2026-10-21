@@ -7,9 +7,12 @@ import jakarta.validation.constraints.NotNull;
 public record EvaluationRequestDto(
         @NotNull Long internId,
         Long mentorId,
-        @Min(0) @Max(10) short technicalRating,
-        @Min(0) @Max(10) short communicationRating,
-        @Min(0) @Max(10) short problemSolvingRating,
-        @Min(0) @Max(10) short overallRating,
+        Long taskId,
+        @Min(1) @Max(5) short requirementUnderstanding,
+        @Min(1) @Max(5) short technicalKnowledge,
+        @Min(1) @Max(5) short workQuality,
+        @Min(1) @Max(5) short taskCompletion,
+        @Min(1) @Max(5) short taskDemonstration,
         String feedback) {
 }
+

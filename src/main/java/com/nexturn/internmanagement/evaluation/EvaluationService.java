@@ -66,13 +66,21 @@ public class EvaluationService {
         List<Evaluation> all = evaluationRepository.findAll().stream()
                 .filter(e -> e.getIntern() != null && internScope.test(e.getIntern().getId())).toList();
         if (all.isEmpty()) {
-            return new EvaluationStatsDto(0, 0, 0, 0, 0);
+            return new EvaluationStatsDto(0, 0, 0, 0, 0, 0, 0);
         }
-        double technical = all.stream().mapToInt(Evaluation::getTechnicalRating).average().orElse(0);
-        double communication = all.stream().mapToInt(Evaluation::getCommunicationRating).average().orElse(0);
-        double problemSolving = all.stream().mapToInt(Evaluation::getProblemSolvingRating).average().orElse(0);
-        double overall = all.stream().mapToInt(Evaluation::getOverallRating).average().orElse(0);
-        return new EvaluationStatsDto(technical, communication, problemSolving, overall, all.size());
+        return new EvaluationStatsDto(
+                avg(all, Evaluation::getRequirementUnderstanding),
+                avg(all, Evaluation::getTechnicalKnowledge),
+                avg(all, Evaluation::getWorkQuality),
+                avg(all, Evaluation::getTaskCompletion),
+                avg(all, Evaluation::getTaskDemonstration),
+                all.stream().mapToInt(Evaluation::getOverallRating).average().orElse(0),
+                all.size());
+    }
+
+    private static double avg(List<Evaluation> items, java.util.function.Function<Evaluation, Short> getter) {
+        return items.stream().map(getter).filter(java.util.Objects::nonNull).mapToInt(Short::intValue).average()
+                .orElse(0);
     }
 
     private void applyDto(Evaluation evaluation, EvaluationRequestDto dto) {
@@ -84,10 +92,15 @@ public class EvaluationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found: " + dto.mentorId()));
             evaluation.setMentor(mentor);
         }
-        evaluation.setTechnicalRating(dto.technicalRating());
-        evaluation.setCommunicationRating(dto.communicationRating());
-        evaluation.setProblemSolvingRating(dto.problemSolvingRating());
-        evaluation.setOverallRating(dto.overallRating());
+        evaluation.setTaskId(dto.taskId());
+        evaluation.setRequirementUnderstanding(dto.requirementUnderstanding());
+        evaluation.setTechnicalKnowledge(dto.technicalKnowledge());
+        evaluation.setWorkQuality(dto.workQuality());
+        evaluation.setTaskCompletion(dto.taskCompletion());
+        evaluation.setTaskDemonstration(dto.taskDemonstration());
+        int total = dto.requirementUnderstanding() + dto.technicalKnowledge() + dto.workQuality()
+                + dto.taskCompletion() + dto.taskDemonstration();
+        evaluation.setOverallRating((short) Math.round(total / 5.0f));
         evaluation.setFeedback(dto.feedback());
     }
 }

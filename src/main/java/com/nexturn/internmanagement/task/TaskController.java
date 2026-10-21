@@ -102,6 +102,11 @@ public class TaskController {
         TaskResponseDto existing = taskService.findById(id);
         ownershipService.assertOwnsMentorResource(principal, existing.mentorId());
         ownershipService.assertOwnsInternResource(principal, existing.internId());
+        if (principal.getUser().getRole() == com.nexturn.internmanagement.user.Role.INTERN
+                && dto.status() != null && dto.status().equals("Completed")
+                && !"Completed".equals(existing.status())) {
+            throw new org.springframework.security.access.AccessDeniedException("Only a mentor can mark a task as completed");
+        }
         boolean canEditDescription = true;
         return ApiResponse.ok(taskService.updateWork(id, dto, canEditDescription), "Task updated");
     }

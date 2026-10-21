@@ -37,17 +37,26 @@ public class Evaluation {
     @JoinColumn(name = "mentor_id")
     private Mentor mentor;
 
-    @Column(name = "technical_rating")
-    private short technicalRating;
+    @Column(name = "requirement_understanding")
+    private Short requirementUnderstanding;
 
-    @Column(name = "communication_rating")
-    private short communicationRating;
+    @Column(name = "technical_knowledge")
+    private Short technicalKnowledge;
 
-    @Column(name = "problem_solving_rating")
-    private short problemSolvingRating;
+    @Column(name = "work_quality")
+    private Short workQuality;
+
+    @Column(name = "task_completion")
+    private Short taskCompletion;
+
+    @Column(name = "task_demonstration")
+    private Short taskDemonstration;
 
     @Column(name = "overall_rating")
     private short overallRating;
+
+    @Column(name = "task_id")
+    private Long taskId;
 
     @Column(columnDefinition = "TEXT")
     private String feedback;

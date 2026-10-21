@@ -124,7 +124,7 @@ public class AuthService {
     private String hash(String value) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return Base64.getEncoder().encodeToString(digest.digest(value.getBytes()));
+            return Base64.getEncoder().encodeToString(digest.digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         } catch (Exception e) {
             throw new IllegalStateException("Unable to hash token", e);
         }

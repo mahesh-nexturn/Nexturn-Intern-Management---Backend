@@ -4,7 +4,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.UUID;
 import java.util.Date;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+
+    private static final String TYPE_ACCESS = "access";
+    private static final String TYPE_REFRESH = "refresh";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -34,23 +39,33 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserPrincipal principal) {
-        return buildToken(principal, accessTokenExpiryMs);
+        return buildToken(principal, accessTokenExpiryMs, TYPE_ACCESS);
     }
 
     public String generateRefreshToken(UserPrincipal principal) {
-        return buildToken(principal, refreshTokenExpiryMs);
+        return buildToken(principal, refreshTokenExpiryMs, TYPE_REFRESH);
     }
 
-    private String buildToken(UserPrincipal principal, long expiryMs) {
+    private String buildToken(UserPrincipal principal, long expiryMs, String type) {
         Date now = new Date();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(principal.getUsername())
+                .claim("typ", type)
                 .claim("userId", principal.getId())
                 .claim("role", principal.getUser().getRole().name())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiryMs))
                 .signWith(signingKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public boolean isAccessToken(String token) {
+        return TYPE_ACCESS.equals(extractClaim(token, c -> c.get("typ", String.class)));
+    }
+
+    public boolean isRefreshToken(String token) {
+        return TYPE_REFRESH.equals(extractClaim(token, c -> c.get("typ", String.class)));
     }
 
     public String extractEmail(String token) {

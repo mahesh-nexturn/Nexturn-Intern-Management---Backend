@@ -1,5 +1,7 @@
 package com.nexturn.internmanagement.evaluation.dto;
 
-public record EvaluationStatsDto(double avgTechnical, double avgCommunication, double avgProblemSolving,
-        double avgOverall, long totalEvaluations) {
+public record EvaluationStatsDto(double avgRequirementUnderstanding, double avgTechnicalKnowledge,
+        double avgWorkQuality, double avgTaskCompletion, double avgTaskDemonstration, double avgOverall,
+        long totalEvaluations) {
 }
+
