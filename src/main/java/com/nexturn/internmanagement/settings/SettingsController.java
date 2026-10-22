@@ -20,12 +20,12 @@ public class SettingsController {
 
     private final SettingsService settingsService;
 
-    @GetMapping("/me")
+    @GetMapping("/user")
     public ApiResponse<SettingsResponseDto> me(@AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.ok(settingsService.findByUserId(principal.getId()));
     }
 
-    @PutMapping("/me")
+    @PutMapping("/user")
     public ApiResponse<SettingsResponseDto> updateMe(
             @AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody SettingsRequestDto dto) {
         return ApiResponse.ok(settingsService.update(principal.getId(), dto), "Settings updated");

@@ -39,8 +39,8 @@ public class AuthController {
         return ApiResponse.ok(null, "Logged out");
     }
 
-    @GetMapping("/me")
-    public ApiResponse<UserResponseDto> me(@AuthenticationPrincipal UserPrincipal principal) {
+    @GetMapping("/user")
+    public ApiResponse<UserResponseDto> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.ok(UserResponseDto.from(principal.getUser()));
     }
 

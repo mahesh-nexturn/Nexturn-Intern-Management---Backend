@@ -49,14 +49,14 @@ class AuthFlowTest extends BaseIntegrationTest {
     @Test
     void validTokenGrantsAccessToProtectedEndpoint() throws Exception {
         String token = loginAndGetToken("authflow@test.com", RAW_PASSWORD);
-        mockMvc.perform(get("/api/auth/me").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+        mockMvc.perform(get("/api/auth/user").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("authflow@test.com"));
     }
 
     @Test
     void invalidTokenIsRejected() throws Exception {
-        mockMvc.perform(get("/api/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer not-a-real-token"))
+        mockMvc.perform(get("/api/auth/user").header(HttpHeaders.AUTHORIZATION, "Bearer not-a-real-token"))
                 .andExpect(status().isForbidden());
     }
 }
