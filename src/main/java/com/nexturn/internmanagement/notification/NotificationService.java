@@ -17,7 +17,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-
+    private final SnsNotificationPublisher snsPublisher;
     public List<NotificationResponseDto> findForUser(Role role, Long userId) {
         NotificationRecipient recipient = switch (role) {
             case ADMIN, HR -> NotificationRecipient.HR;
@@ -48,6 +48,7 @@ public class NotificationService {
                 .notificationDate(LocalDateTime.now())
                 .status(NotificationStatus.Unread)
                 .build());
+        snsPublisher.publish(title, message);
     }
 
     public NotificationResponseDto findById(Long id) {
@@ -70,7 +71,9 @@ public class NotificationService {
                 .notificationDate(LocalDateTime.now())
                 .status(NotificationStatus.Unread)
                 .build();
-        return NotificationResponseDto.from(notificationRepository.save(notification));
+        NotificationResponseDto saved = NotificationResponseDto.from(notificationRepository.save(notification));
+        snsPublisher.publish(dto.title(), dto.message());
+        return saved;
     }
 
     public NotificationResponseDto update(Long id, NotificationRequestDto dto) {

@@ -29,6 +29,12 @@ server:
   port: 8080
 
 app:
+  aws:
+    region: ${AWS_REGION:ap-south-1}
+  s3:
+    bucket: ${APP_S3_BUCKET:}
+  sns:
+    topic-arn: ${APP_SNS_TOPIC_ARN:}
   cors:
     allowed-origins: http://localhost:5173,http://localhost:5174
 
