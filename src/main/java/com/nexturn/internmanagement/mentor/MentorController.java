@@ -40,13 +40,20 @@ public class MentorController {
     public ApiResponse<MentorResponseDto> get(@PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal) {
         ownershipService.assertHrOwnsMentor(principal, id);
+        if (ownershipService.isMentor(principal)) {
+            ownershipService.assertOwnsMentorResource(principal, id);
+        }
         return ApiResponse.ok(mentorService.findById(id));
     }
 
     @GetMapping("/{id}/interns")
+    @PreAuthorize("hasAnyRole('ADMIN','HR','MENTOR')")
     public ApiResponse<List<InternResponseDto>> interns(@PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal) {
         ownershipService.assertHrOwnsMentor(principal, id);
+        if (ownershipService.isMentor(principal)) {
+            ownershipService.assertOwnsMentorResource(principal, id);
+        }
         return ApiResponse.ok(mentorService.interns(id));
     }
 

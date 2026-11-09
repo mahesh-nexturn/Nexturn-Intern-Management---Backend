@@ -22,6 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordCryptoService passwordCryptoService;
+
+    @GetMapping("/public-key")
+    public ApiResponse<String> publicKey() {
+        return ApiResponse.ok(passwordCryptoService.publicKeyBase64());
+    }
 
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {

@@ -94,7 +94,7 @@ Two config files exist. `application.properties` takes precedence over `applicat
 
 | Setting                  | `application.yml`                              | `application.properties` (wins)     |
 | ------------------------ | ---------------------------------------------- | ----------------------------------- |
-| `server.port`            | `8080`                                         | **`8082`** (what the frontend uses) |
+| `server.port`            | `8080`                                         | **`8080`** (what the frontend uses) |
 | `spring.jpa...ddl-auto`  | `validate` (Flyway owns the schema)            | `update`                            |
 | DB URL / user / password | `localhost:5432/intern_management`, `postgres` | same database                       |
 
@@ -116,7 +116,7 @@ springdoc.swagger-ui.path: /swagger-ui.html
 - Set `JWT_SECRET` (32+ random chars) as an environment variable outside local development.
 - Open endpoints: `/api/auth/login`, `/api/auth/refresh`, Swagger, `/h2-console/**`, `/actuator/health`.
   Everything else needs `Authorization: Bearer <accessToken>`.
-- Frontend must point to the backend with `VITE_API_BASE_URL=http://localhost:8082/api`.
+- Frontend must point to the backend with `VITE_API_BASE_URL=http://localhost:8080/api`.
 
 ---
 
@@ -156,17 +156,17 @@ If the port is busy, start with a different one: `$env:SERVER_PORT = "8083"` bef
 
 ### Verify
 
-- Swagger UI: `http://localhost:8082/swagger-ui.html`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
 - Login as the seeded admin:
   ```powershell
-  curl -X POST http://localhost:8082/api/auth/login `
+  curl -X POST http://localhost:8080/api/auth/login `
     -H "Content-Type: application/json" `
     -d '{"email":"admin@nexturn.com","password":"Admin@123"}'
   ```
   Expected `200` with `data.accessToken`.
 - Call a protected endpoint:
   ```powershell
-  curl http://localhost:8082/api/interns -H "Authorization: Bearer <accessToken>"
+  curl http://localhost:8080/api/interns -H "Authorization: Bearer <accessToken>"
   ```
 
 Seeded and default logins (development only, change them for any shared environment):
@@ -251,7 +251,7 @@ Re-run the suite after any change to endpoints, security or migrations to confir
 ## 11. Frontend Integration
 
 - Frontend repo path: `Nexturn-Intern-Management---Frontend` (React 19, RTK Query, MUI).
-- It calls `http://localhost:8082/api`, adds the bearer token, and refreshes it on 401/403.
+- It calls `http://localhost:8080/api`, adds the bearer token, and refreshes it on 401/403.
 - CORS allows `http://localhost:5173` and `5174`. Add other origins in `app.cors.allowed-origins`.
 - Frontend demo script: `DEMO_GUIDE.md`. Frontend reference: `UI_FEATURE_ANALYSIS.md`.
 
@@ -263,7 +263,7 @@ Re-run the suite after any change to endpoints, security or migrations to confir
 | -------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `psql` not found                       | Use the full path or add `...\PostgreSQL\16\bin` to PATH                                  |
 | `password authentication failed`       | Make the DB password in the config file match your Postgres password                      |
-| Frontend cannot reach the API          | Check `VITE_API_BASE_URL` matches the running port (8082 by default) and CORS origins     |
+| Frontend cannot reach the API          | Check `VITE_API_BASE_URL` matches the running port (8080 by default) and CORS origins     |
 | Port already in use                    | Stop the other process or set `SERVER_PORT`                                               |
 | Flyway validation error                | A migration was edited after being applied; restore it and add a new migration            |
 | Schema differs from entities           | Check that `ddl-auto` is not `update` in `application.properties` (see section 5)         |

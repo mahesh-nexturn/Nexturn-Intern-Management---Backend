@@ -34,6 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final InternRepository internRepository;
+    private final PasswordCryptoService passwordCryptoService;
 
     @Value("${jwt.refresh-token-expiry-ms}")
     private long refreshTokenExpiryMs;
@@ -51,8 +52,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        String password = passwordCryptoService.decrypt(request.password());
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+                new UsernamePasswordAuthenticationToken(request.email(), password));
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
@@ -99,10 +101,12 @@ public class AuthService {
 
     @Transactional
     public void changePassword(User user, ChangePasswordRequest request) {
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+        String currentPassword = passwordCryptoService.decrypt(request.currentPassword());
+        String newPassword = passwordCryptoService.decrypt(request.newPassword());
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new BadCredentialsException("Current password is incorrect");
         }
-        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 

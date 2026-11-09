@@ -38,11 +38,19 @@ public class DocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
     }
 
+    private static final java.util.Set<String> ALLOWED_EXTENSIONS = java.util.Set.of(
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv", "png", "jpg", "jpeg");
+
     public DocumentResponseDto upload(MultipartFile file, String documentType, Long uploadedByUserId) {
         DocumentType type = parseType(documentType);
         User uploader = userRepository.findById(uploadedByUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + uploadedByUserId));
         String originalName = sanitizeFileName(file.getOriginalFilename());
+        String ext = originalName.contains(".")
+                ? originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase() : "";
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new IllegalArgumentException("File type not allowed: ." + ext);
+        }
         String storedName = UUID.randomUUID() + "_" + originalName;
         try {
             fileStorage.store(storedName, file);

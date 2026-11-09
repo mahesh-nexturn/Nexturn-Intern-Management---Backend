@@ -42,7 +42,9 @@ public class TaskController {
         }
         if (ownershipService.isMentor(principal)) {
             if (internId != null) {
-                return ApiResponse.ok(taskService.findByIntern(internId));
+                Long ownMentorId = ownershipService.currentMentorId(principal);
+                return ApiResponse.ok(taskService.findByIntern(internId).stream()
+                        .filter(t -> java.util.Objects.equals(t.mentorId(), ownMentorId)).toList());
             }
             Long mentorScope = mentorId != null ? mentorId : ownershipService.currentMentorId(principal);
             ownershipService.assertOwnsMentorResource(principal, mentorScope);
@@ -107,7 +109,7 @@ public class TaskController {
                 && !"Completed".equals(existing.status())) {
             throw new org.springframework.security.access.AccessDeniedException("Only a mentor can mark a task as completed");
         }
-        boolean canEditDescription = true;
+        boolean canEditDescription = principal.getUser().getRole() != com.nexturn.internmanagement.user.Role.INTERN;
         return ApiResponse.ok(taskService.updateWork(id, dto, canEditDescription), "Task updated");
     }
 

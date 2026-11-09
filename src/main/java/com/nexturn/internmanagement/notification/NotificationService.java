@@ -18,12 +18,37 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SnsNotificationPublisher snsPublisher;
-    public List<NotificationResponseDto> findForUser(Role role, Long userId) {
-        NotificationRecipient recipient = switch (role) {
+    private static NotificationRecipient audienceOf(Role role) {
+        return switch (role) {
             case ADMIN, HR -> NotificationRecipient.HR;
             case MENTOR -> NotificationRecipient.Mentor;
             case INTERN -> NotificationRecipient.Intern;
         };
+    }
+
+    /** Loads a notification only if it is visible to the given user; otherwise behaves as not found. */
+    public Notification getVisibleEntity(Long id, Role role, Long userId) {
+        Notification n = getEntity(id);
+        boolean audienceMatch = n.getRecipient() == NotificationRecipient.All || n.getRecipient() == audienceOf(role);
+        boolean targetMatch = n.getTargetUser() == null || n.getTargetUser().getId().equals(userId);
+        if (!audienceMatch || !targetMatch) {
+            throw new ResourceNotFoundException("Notification not found: " + id);
+        }
+        return n;
+    }
+
+    public NotificationResponseDto findVisibleById(Long id, Role role, Long userId) {
+        return NotificationResponseDto.from(getVisibleEntity(id, role, userId));
+    }
+
+    public NotificationResponseDto markReadVisible(Long id, Role role, Long userId) {
+        Notification notification = getVisibleEntity(id, role, userId);
+        notification.setStatus(NotificationStatus.Read);
+        return NotificationResponseDto.from(notificationRepository.save(notification));
+    }
+
+    public List<NotificationResponseDto> findForUser(Role role, Long userId) {
+        NotificationRecipient recipient = audienceOf(role);
         return notificationRepository
                 .findByRecipientInOrderByNotificationDateDesc(List.of(NotificationRecipient.All, recipient))
                 .stream()

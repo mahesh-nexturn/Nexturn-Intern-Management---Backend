@@ -31,8 +31,9 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<NotificationResponseDto> get(@PathVariable Long id) {
-        return ApiResponse.ok(notificationService.findById(id));
+    public ApiResponse<NotificationResponseDto> get(@PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(notificationService.findVisibleById(id, principal.getUser().getRole(), principal.getId()));
     }
 
     @PostMapping
@@ -50,8 +51,11 @@ public class NotificationController {
     }
 
     @PutMapping("/{id}/mark-read")
-    public ApiResponse<NotificationResponseDto> markRead(@PathVariable Long id) {
-        return ApiResponse.ok(notificationService.markRead(id), "Notification marked read");
+    public ApiResponse<NotificationResponseDto> markRead(@PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.ok(
+                notificationService.markReadVisible(id, principal.getUser().getRole(), principal.getId()),
+                "Notification marked read");
     }
 
     @DeleteMapping("/{id}")

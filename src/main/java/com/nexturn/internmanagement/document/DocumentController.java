@@ -39,8 +39,12 @@ public class DocumentController {
     }
 
     @GetMapping("/latest")
-    public ApiResponse<List<DocumentResponseDto>> latest(@RequestParam(defaultValue = "5") int limit) {
-        return ApiResponse.ok(documentService.latest(limit));
+    public ApiResponse<List<DocumentResponseDto>> latest(@RequestParam(defaultValue = "5") int limit,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (ownershipService.isAdmin(principal)) {
+            return ApiResponse.ok(documentService.latest(Math.min(Math.max(limit, 1), 50)));
+        }
+        return ApiResponse.ok(documentService.latestForUser(principal.getId(), limit));
     }
 
     @GetMapping("/{id}")
