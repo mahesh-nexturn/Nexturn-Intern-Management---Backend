@@ -7,15 +7,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-/** Used for local development when no S3 bucket is configured. */
+/** Stores uploads on the server's local disk (see app.file-storage.location). */
 @Component
-@ConditionalOnExpression("'${app.s3.bucket:}'.isEmpty()")
 public class LocalFileStorage implements FileStorage {
 
     @Value("${app.file-storage.location:uploads}")

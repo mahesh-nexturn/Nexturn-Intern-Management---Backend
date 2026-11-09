@@ -24,10 +24,18 @@ class AuthFlowTest extends BaseIntegrationTest {
     void loginWithCorrectCredentialsReturnsToken() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"authflow@test.com\",\"password\":\"" + RAW_PASSWORD + "\"}"))
+                        .content("{\"email\":\"authflow@test.com\",\"password\":\"" + encrypt(RAW_PASSWORD) + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.role").value("ADMIN"));
+    }
+
+    @Test
+    void loginWithPlainTextPasswordIsRejected() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"authflow@test.com\",\"password\":\"" + RAW_PASSWORD + "\"}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

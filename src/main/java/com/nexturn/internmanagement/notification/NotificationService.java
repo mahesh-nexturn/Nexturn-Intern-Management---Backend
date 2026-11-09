@@ -17,7 +17,20 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final SnsNotificationPublisher snsPublisher;
+    private final EmailService emailService;
+
+    private void email(User target, NotificationRecipient audience, String title, String message) {
+        List<User> users = target != null ? List.of(target) : switch (audience) {
+            case HR -> userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == Role.ADMIN || u.getRole() == Role.HR).toList();
+            case Mentor -> userRepository.findByRole(Role.MENTOR);
+            case Intern -> userRepository.findByRole(Role.INTERN);
+            case All -> userRepository.findAll();
+        };
+        emailService.send(users.stream().map(User::getEmail).filter(e -> e != null && !e.isBlank()).distinct().toList(),
+                title, message);
+    }
+
     private static NotificationRecipient audienceOf(Role role) {
         return switch (role) {
             case ADMIN, HR -> NotificationRecipient.HR;
@@ -73,7 +86,7 @@ public class NotificationService {
                 .notificationDate(LocalDateTime.now())
                 .status(NotificationStatus.Unread)
                 .build());
-        snsPublisher.publish(title, message);
+        email(target, audience, title, message);
     }
 
     public NotificationResponseDto findById(Long id) {
@@ -97,7 +110,7 @@ public class NotificationService {
                 .status(NotificationStatus.Unread)
                 .build();
         NotificationResponseDto saved = NotificationResponseDto.from(notificationRepository.save(notification));
-        snsPublisher.publish(dto.title(), dto.message());
+        email(null, notification.getRecipient(), dto.title(), dto.message());
         return saved;
     }
 

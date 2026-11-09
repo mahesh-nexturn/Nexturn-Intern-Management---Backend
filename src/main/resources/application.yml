@@ -4,6 +4,17 @@ spring:
   main:
     lazy-initialization: true
     banner-mode: "off"
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${APP_MAIL_AUTH:true}
+      mail.smtp.starttls.enable: ${APP_MAIL_STARTTLS:true}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   jmx:
     enabled: false
   h2:
@@ -31,13 +42,16 @@ spring:
 server:
   port: 8080
 
+management:
+  health:
+    mail:
+      enabled: false
+
 app:
-  aws:
-    region: ${AWS_REGION:ap-south-1}
-  s3:
-    bucket: ${APP_S3_BUCKET:}
-  sns:
-    topic-arn: ${APP_SNS_TOPIC_ARN:}
+  file-storage:
+    location: ${APP_UPLOAD_DIR:uploads}
+  mail:
+    from: ${APP_MAIL_FROM:}
   cors:
     allowed-origins: http://localhost:5173,http://localhost:5174
 

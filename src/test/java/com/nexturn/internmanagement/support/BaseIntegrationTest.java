@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexturn.internmanagement.intern.Intern;
 import com.nexturn.internmanagement.intern.InternRepository;
+import com.nexturn.internmanagement.auth.PasswordCryptoService;
 import com.nexturn.internmanagement.mentor.Mentor;
 import com.nexturn.internmanagement.mentor.MentorRepository;
 import com.nexturn.internmanagement.mentor.MentorStatus;
@@ -56,6 +57,22 @@ public abstract class BaseIntegrationTest {
 
     protected static final String RAW_PASSWORD = "Test@1234";
 
+    @Autowired
+    private PasswordCryptoService passwordCryptoService;
+
+    /** Encrypts a password the same way the frontend does (RSA-OAEP with the server's public key). */
+    protected String encrypt(String password) throws Exception {
+        java.security.PublicKey key = java.security.KeyFactory.getInstance("RSA").generatePublic(
+                new java.security.spec.X509EncodedKeySpec(
+                        java.util.Base64.getDecoder().decode(passwordCryptoService.publicKeyBase64())));
+        javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("RSA/ECB/OAEPPadding");
+        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, key, new javax.crypto.spec.OAEPParameterSpec(
+                "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA256,
+                javax.crypto.spec.PSource.PSpecified.DEFAULT));
+        return java.util.Base64.getEncoder().encodeToString(
+                cipher.doFinal(password.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+
     protected User createUser(String name, String email, Role role) {
         User user = User.builder()
                 .name(name)
@@ -90,7 +107,7 @@ public abstract class BaseIntegrationTest {
 
     /** Logs in via the real /api/auth/login endpoint and returns the JWT access token. */
     protected String loginAndGetToken(String email, String password) throws Exception {
-        String body = objectMapper.writeValueAsString(new LoginPayload(email, password));
+        String body = objectMapper.writeValueAsString(new LoginPayload(email, encrypt(password)));
         String response = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
